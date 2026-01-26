@@ -4,7 +4,7 @@ A desktop application for managing AI agent skills across multiple coding assist
 
 ## Download
 
-Download the latest version from [GitHub Releases](https://github.com/user/skills-manager/releases):
+Download the latest version from [GitHub Releases](https://github.com/rayhashcell/skills-manager/releases):
 
 | Platform | Download |
 |----------|----------|
