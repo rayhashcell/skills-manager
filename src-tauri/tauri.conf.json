@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "skills-manager",
+  "productName": "Skills Manager",
   "version": "0.1.0",
-  "identifier": "com.rayman.skills-manager",
+  "identifier": "com.skills-manager.app",
   "build": {
     "beforeDevCommand": "pnpm dev",
     "devUrl": "http://localhost:1420",
@@ -12,9 +12,11 @@
   "app": {
     "windows": [
       {
-        "title": "skills-manager",
-        "width": 800,
-        "height": 600
+        "title": "Skills Manager",
+        "width": 900,
+        "height": 650,
+        "minWidth": 700,
+        "minHeight": 500
       }
     ],
     "security": {
@@ -30,6 +32,12 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "category": "DeveloperTool",
+    "shortDescription": "Manage AI agent skills across multiple coding assistants",
+    "longDescription": "Skills Manager helps you organize and distribute skills (reusable instruction sets) across various AI coding assistants like Cursor, Claude Code, Windsurf, and more.",
+    "macOS": {
+      "minimumSystemVersion": "10.15"
+    }
   }
 }

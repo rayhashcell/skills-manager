@@ -2,6 +2,17 @@
 
 A desktop application for managing AI agent skills across multiple coding assistants. Built with Tauri, React, and TypeScript.
 
+## Download
+
+Download the latest version from [GitHub Releases](https://github.com/user/skills-manager/releases):
+
+| Platform | Download |
+|----------|----------|
+| macOS (Apple Silicon) | `.dmg` (aarch64) |
+| macOS (Intel) | `.dmg` (x64) |
+| Windows | `.msi` / `.exe` |
+| Linux | `.deb` / `.AppImage` |
+
 ## Overview
 
 Skills Manager helps you organize and distribute skills (reusable instruction sets) across various AI coding assistants. Instead of manually copying skill folders to each agent's directory, you can manage everything from a single interface.
