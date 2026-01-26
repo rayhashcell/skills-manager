@@ -17,6 +17,8 @@ Download the latest version from [GitHub Releases](https://github.com/user/skill
 
 Skills Manager helps you organize and distribute skills (reusable instruction sets) across various AI coding assistants. Instead of manually copying skill folders to each agent's directory, you can manage everything from a single interface.
 
+![Skills Manager Home](public/home.png)
+
 ### Getting Started with Skills
 
 The easiest way to get skills is from [skills.sh](https://skills.sh/):
@@ -111,6 +113,8 @@ The main view shows all skills in your global directory (`~/.agents/skills`):
 ### Agent Detail View
 
 Click on an agent in the sidebar to see:
+
+![Agent Detail View](public/claudecode.png)
 
 - **Symlinked skills**: Skills linked from global directory (can unlink)
 - **Local skills**: Skills stored directly in agent's folder (can delete or upload to global)
