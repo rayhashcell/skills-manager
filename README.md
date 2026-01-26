@@ -13,6 +13,11 @@ Download the latest version from [GitHub Releases](https://github.com/rayhashcel
 | Windows | `.msi` / `.exe` |
 | Linux | `.deb` / `.AppImage` |
 
+> **Note for macOS users:** If you see "App is damaged and can't be opened", run this command in Terminal:
+> ```bash
+> sudo xattr -rd com.apple.quarantine "/Applications/Skills Manager.app"
+> ```
+
 ## Overview
 
 Skills Manager helps you organize and distribute skills (reusable instruction sets) across various AI coding assistants. Instead of manually copying skill folders to each agent's directory, you can manage everything from a single interface.
