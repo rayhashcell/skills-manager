@@ -85,7 +85,7 @@ export function GlobalSkillsPage({
           </div>
         </div>
         <p className="text-sm text-muted-foreground mt-3">
-          Skills stored in <code className="px-1.5 py-0.5 rounded bg-muted font-mono text-xs">~/.agents/skills</code>
+          Skills stored in <code className="px-1.5 py-0.5 rounded bg-primary/15 text-primary font-mono text-xs border border-primary/20">~/.agents/skills</code>
         </p>
       </header>
 

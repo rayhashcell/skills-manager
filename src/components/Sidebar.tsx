@@ -5,7 +5,8 @@
  */
 
 import { useEffect, useState } from "react";
-import { Terminal, Globe, RefreshCw, ArrowUpCircle } from "lucide-react";
+import { Terminal, Globe, RefreshCw, ArrowUpCircle, Sun, Moon } from "lucide-react";
+import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -84,12 +85,34 @@ export function Sidebar({
     document.addEventListener('mouseup', handleMouseUp);
   };
 
+  const { theme, setTheme } = useTheme();
+
+  const cycleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
+
+  const ThemeIcon = theme === "dark" ? Moon : Sun;
+
   return (
-    <aside 
-      className="flex flex-col border-r border-border bg-card relative"
+    <aside
+      className="h-full flex flex-col border-r border-border bg-sidebar relative overflow-hidden"
       style={{ width: `${width}px` }}
     >
-      {/* Header with Global Skills */}
+      {/* Logo/Brand Area */}
+      <div className="h-14 flex items-center justify-between px-4 border-b border-border">
+        <span className="font-semibold text-base text-foreground">Skills Manager</span>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={cycleTheme}
+          className="size-8"
+          aria-label={`Current theme: ${theme}. Click to switch.`}
+        >
+          <ThemeIcon className="size-4" />
+        </Button>
+      </div>
+
+      {/* Global Skills */}
       <div className="p-3">
         <button
           onClick={onNavigateGlobalSkills}
@@ -109,7 +132,7 @@ export function Sidebar({
 
       {/* Agents List */}
       <div className="flex-1 min-h-0 flex flex-col px-3 pb-3">
-        <div className="flex items-center justify-between mb-2 px-1">
+        <div className="shrink-0 flex items-center justify-between mb-2 px-1">
           <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
             Agents
           </h2>
@@ -126,7 +149,7 @@ export function Sidebar({
           )}
         </div>
 
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1 min-h-0">
           <div className="space-y-0.5">
             {sortedAgents.map((agent) => {
               const isSelected = currentView === "agent-detail" && selectedAgentId === agent.id;
@@ -171,7 +194,7 @@ export function Sidebar({
       </div>
 
       {/* Version & Update */}
-      <div className="px-3 pb-3 pt-2 border-t border-border">
+      <div className="shrink-0 px-3 pb-3 pt-2 border-t border-border">
         {versionInfo?.hasUpdate ? (
           <a
             href={versionInfo.releaseUrl || "https://github.com/nicepkg/skills-manager/releases"}
@@ -188,7 +211,7 @@ export function Sidebar({
             </div>
           </a>
         ) : (
-          <p className="text-[10px] text-muted-foreground text-center">
+          <p className="text-[10px] text-muted-foreground text-center py-1">
             v{versionInfo?.currentVersion || "..."}
           </p>
         )}
