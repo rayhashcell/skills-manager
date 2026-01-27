@@ -126,13 +126,13 @@ export function AgentDetailPage({
 
         {skills.length > 0 ? (
           <div className="p-6">
-            <Table className="min-w-[500px]">
+            <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead className="w-[100px]">Status</TableHead>
+                  <TableHead className="w-[180px]">Name</TableHead>
+                  <TableHead className="w-[80px]">Status</TableHead>
                   <TableHead>Path</TableHead>
-                  <TableHead className="w-[140px] text-right">Action</TableHead>
+                  <TableHead className="w-[100px] text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -184,16 +184,16 @@ function StatusBadge({ status }: { status: AgentSkill['status'] }) {
 
 function PathCell({ path, onOpen }: { path: string | null; onOpen: (path: string) => void }) {
   if (!path) {
-    return <span className="text-muted-foreground text-xs">-</span>;
+    return <span className="text-muted-foreground text-xs">—</span>;
   }
 
   return (
     <div className="group relative">
       <button
         onClick={() => onOpen(path)}
-        className="font-mono text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 max-w-[200px] cursor-pointer transition-colors"
+        className="font-mono text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 cursor-pointer transition-colors"
       >
-        <span className="truncate">{path}</span>
+        <span className="truncate max-w-[400px]">{path}</span>
         <ExternalLink className="size-3 shrink-0 opacity-50" />
       </button>
       {/* Tooltip on hover */}
