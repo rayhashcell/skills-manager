@@ -1,7 +1,16 @@
 use std::env;
 use std::fs;
-use std::os::unix::fs::symlink;
 use std::path::PathBuf;
+
+#[cfg(unix)]
+fn create_symlink<P: AsRef<std::path::Path>, Q: AsRef<std::path::Path>>(original: P, link: Q) -> std::io::Result<()> {
+    std::os::unix::fs::symlink(original, link)
+}
+
+#[cfg(windows)]
+fn create_symlink<P: AsRef<std::path::Path>, Q: AsRef<std::path::Path>>(original: P, link: Q) -> std::io::Result<()> {
+    std::os::windows::fs::symlink_dir(original, link)
+}
 
 pub mod skill_parser;
 
@@ -272,7 +281,7 @@ fn toggle_skill(agent_id: String, skill_name: String, enable: bool) -> Result<()
 
         // Create symlink
         // Note: For VS Code extensions, specific structure might be needed, but sticking to direct link for now
-        symlink(&global_skill_path, &agent_skill_path)
+        create_symlink(&global_skill_path, &agent_skill_path)
             .map_err(|e| format!("Failed to link: {}", e))?;
     } else {
         // Remove symlink
@@ -339,7 +348,7 @@ pub fn link_skill_to_all_with_home(skill_name: &str, home: &PathBuf) -> Result<B
         }
         
         // Create symlink
-        match symlink(&global_skill_path, &agent_skill_path) {
+        match create_symlink(&global_skill_path, &agent_skill_path) {
             Ok(_) => {
                 success.push(agent.id);
             }
@@ -1202,7 +1211,7 @@ allowed-tools:
         
         // Pre-create symlink for cursor
         let cursor_symlink = cursor_path.join("test-skill");
-        symlink(&skill_dir, &cursor_symlink).expect("Failed to create pre-existing symlink");
+        create_symlink(&skill_dir, &cursor_symlink).expect("Failed to create pre-existing symlink");
         
         // Act: Link skill to all
         let result = link_skill_to_all_with_home("test-skill", &home_path).expect("link_skill_to_all should succeed");
@@ -1335,8 +1344,8 @@ allowed-tools:
         // Create symlinks
         let cursor_symlink = cursor_path.join("test-skill");
         let claude_symlink = claude_path.join("test-skill");
-        symlink(&skill_dir, &cursor_symlink).expect("Failed to create cursor symlink");
-        symlink(&skill_dir, &claude_symlink).expect("Failed to create claude symlink");
+        create_symlink(&skill_dir, &cursor_symlink).expect("Failed to create cursor symlink");
+        create_symlink(&skill_dir, &claude_symlink).expect("Failed to create claude symlink");
         
         // Verify symlinks exist before unlink
         assert!(cursor_symlink.exists(), "Cursor symlink should exist before unlink");
@@ -1377,7 +1386,7 @@ allowed-tools:
         
         // Create symlink
         let cursor_symlink = cursor_path.join("test-skill");
-        symlink(&skill_dir, &cursor_symlink).expect("Failed to create cursor symlink");
+        create_symlink(&skill_dir, &cursor_symlink).expect("Failed to create cursor symlink");
         
         // Verify symlink exists
         assert!(cursor_symlink.exists(), "Cursor symlink should exist before unlink");
@@ -1497,8 +1506,8 @@ allowed-tools:
         fs::create_dir_all(&claude_path).expect("Failed to create claude directory");
         
         // Create symlinks
-        symlink(&skill_dir, cursor_path.join("test-skill")).expect("Failed to create cursor symlink");
-        symlink(&skill_dir, claude_path.join("test-skill")).expect("Failed to create claude symlink");
+        create_symlink(&skill_dir, cursor_path.join("test-skill")).expect("Failed to create cursor symlink");
+        create_symlink(&skill_dir, claude_path.join("test-skill")).expect("Failed to create claude symlink");
         
         // Act: Unlink skill from all
         let result = unlink_skill_from_all_with_home("test-skill", &home_path).expect("unlink_skill_from_all should succeed");
@@ -1536,7 +1545,7 @@ allowed-tools:
         
         // cursor: has symlink
         let cursor_symlink = cursor_path.join("test-skill");
-        symlink(&skill_dir, &cursor_symlink).expect("Failed to create cursor symlink");
+        create_symlink(&skill_dir, &cursor_symlink).expect("Failed to create cursor symlink");
         
         // claude: has regular file
         let claude_file = claude_path.join("test-skill");
@@ -1567,7 +1576,6 @@ mod proptests {
     use proptest::prelude::*;
     use std::collections::HashSet;
     use std::fs;
-    use std::os::unix::fs::symlink;
     use tempfile::TempDir;
 
     // ==================== Generator Strategies ====================
@@ -1653,7 +1661,7 @@ mod proptests {
             fs::create_dir_all(parent).expect("Failed to create parent directory");
         }
         
-        symlink(&global_skill_path, &agent_skill_path).expect("Failed to create symlink");
+        create_symlink(&global_skill_path, &agent_skill_path).expect("Failed to create symlink");
     }
 
     /// Creates a blocking file (not a symlink) at the agent's skill path.
