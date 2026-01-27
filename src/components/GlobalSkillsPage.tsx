@@ -12,6 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -109,11 +110,12 @@ export function GlobalSkillsPage({
 
         {skills.length > 0 ? (
           <div className="p-6">
-            <Table className="min-w-[400px]">
+            <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead className="w-[160px] text-right">Actions</TableHead>
+                  <TableHead className="w-auto">Name</TableHead>
+                  <TableHead>Linked</TableHead>
+                  <TableHead className="w-[140px] text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -153,6 +155,11 @@ function SkillRow({ skill, agents, onLink, onUnlink, loading }: SkillRowProps) {
   const [selectedForUnlink, setSelectedForUnlink] = useState<Set<string>>(new Set());
 
   const linkedCount = skill.linked_agents.length;
+  
+  // Get linked agent details
+  const linkedAgentDetails = skill.linked_agents
+    .map(agentId => agents.find(a => a.id === agentId))
+    .filter((a): a is Agent => a !== undefined);
   
   // Agents that can be linked (detected and not already installed - symlink or local)
   const linkableAgents = agents.filter(a => a.detected && !skill.linked_agents.includes(a.id));
@@ -213,15 +220,27 @@ function SkillRow({ skill, agents, onLink, onUnlink, loading }: SkillRowProps) {
 
   return (
     <TableRow>
-      <TableCell className="font-medium">
+      <TableCell className="font-medium whitespace-nowrap">
         {skill.metadata.name || skill.name}
-        {linkedCount > 0 && (
-          <span className="ml-2 text-[10px] bg-accent text-accent-foreground px-1.5 py-0.5 rounded-full">
-            {linkedCount} linked
-          </span>
+      </TableCell>
+      <TableCell>
+        {linkedCount > 0 ? (
+          <div className="flex flex-wrap gap-1">
+            {linkedAgentDetails.map(agent => (
+              <Badge 
+                key={agent.id} 
+                variant="secondary"
+                className="text-xs font-normal"
+              >
+                {agent.name}
+              </Badge>
+            ))}
+          </div>
+        ) : (
+          <span className="text-sm text-muted-foreground">—</span>
         )}
       </TableCell>
-      <TableCell className="text-right">
+      <TableCell className="text-right whitespace-nowrap">
         <div className="flex gap-1 justify-end">
           {/* Link Popover */}
           <Popover open={linkOpen} onOpenChange={setLinkOpen}>

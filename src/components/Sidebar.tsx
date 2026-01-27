@@ -4,10 +4,12 @@
  * Navigation sidebar with Global Skills and Agents list.
  */
 
-import { Terminal, Globe, RefreshCw } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Terminal, Globe, RefreshCw, ArrowUpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { checkForUpdates, type VersionInfo } from "@/lib/version";
 import type { Agent, Skill } from "@/lib/types";
 
 export interface SidebarProps {
@@ -55,6 +57,11 @@ export function Sidebar({
 }: SidebarProps) {
   const isGlobalSkillsSelected = currentView === "global-skills";
   const sortedAgents = sortAgents(agents, skills);
+  const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
+
+  useEffect(() => {
+    checkForUpdates().then(setVersionInfo);
+  }, []);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!onWidthChange) return;
@@ -161,6 +168,30 @@ export function Sidebar({
             })}
           </div>
         </ScrollArea>
+      </div>
+
+      {/* Version & Update */}
+      <div className="px-3 pb-3 pt-2 border-t border-border">
+        {versionInfo?.hasUpdate ? (
+          <a
+            href={versionInfo.releaseUrl || "https://github.com/nicepkg/skills-manager/releases"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-2.5 py-2 rounded-md bg-primary/10 hover:bg-primary/20 transition-colors cursor-pointer"
+          >
+            <ArrowUpCircle className="size-4 text-primary" />
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium text-primary">Update available</p>
+              <p className="text-[10px] text-muted-foreground">
+                v{versionInfo.currentVersion} → v{versionInfo.latestVersion}
+              </p>
+            </div>
+          </a>
+        ) : (
+          <p className="text-[10px] text-muted-foreground text-center">
+            v{versionInfo?.currentVersion || "..."}
+          </p>
+        )}
       </div>
 
       {/* Resize handle */}
