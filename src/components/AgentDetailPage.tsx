@@ -2,14 +2,17 @@
  * AgentDetailPage Component
  *
  * Displays skills for a specific agent in a table format.
+ * Supports batch link/unlink operations via checkbox selection.
  */
 
+import { useState, useMemo } from "react";
 import { AlertCircle, FolderOpen, RefreshCw, Sparkles, Link, Trash2, Unlink, ExternalLink, Upload } from "lucide-react";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { homeDir, join } from "@tauri-apps/api/path";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -26,6 +29,8 @@ export interface AgentDetailPageProps {
   skills: AgentSkill[];
   onLinkSkill: (skillName: string) => Promise<void>;
   onUnlinkSkill: (skillName: string) => Promise<void>;
+  onBatchLinkSkills: (skillNames: string[]) => Promise<void>;
+  onBatchUnlinkSkills: (skillNames: string[]) => Promise<void>;
   onDeleteSkill: (skillName: string) => Promise<void>;
   onUploadToGlobal: (skillName: string) => Promise<void>;
   onRefresh: () => void;
@@ -37,12 +42,78 @@ export function AgentDetailPage({
   skills,
   onLinkSkill,
   onUnlinkSkill,
+  onBatchLinkSkills,
+  onBatchUnlinkSkills,
   onDeleteSkill,
   onUploadToGlobal,
   onRefresh,
   loading,
 }: AgentDetailPageProps) {
   const installedCount = skills.filter(s => s.status !== 'not_installed').length;
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  // Skills that can be linked (not_installed + in_global)
+  const linkableSkills = useMemo(
+    () => skills.filter(s => s.status === 'not_installed' && s.in_global),
+    [skills]
+  );
+  // Skills that can be unlinked (symlink)
+  const unlinkableSkills = useMemo(
+    () => skills.filter(s => s.status === 'symlink'),
+    [skills]
+  );
+  // All selectable skills (linkable or unlinkable)
+  const selectableSkills = useMemo(
+    () => skills.filter(s => (s.status === 'not_installed' && s.in_global) || s.status === 'symlink'),
+    [skills]
+  );
+
+  const selectedLinkable = useMemo(
+    () => linkableSkills.filter(s => selected.has(s.name)),
+    [linkableSkills, selected]
+  );
+  const selectedUnlinkable = useMemo(
+    () => unlinkableSkills.filter(s => selected.has(s.name)),
+    [unlinkableSkills, selected]
+  );
+  const hasSelection = selected.size > 0;
+  const allSelectableSelected = selectableSkills.length > 0 && selectableSkills.every(s => selected.has(s.name));
+
+  const handleToggleSelect = (skillName: string) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(skillName)) {
+        next.delete(skillName);
+      } else {
+        next.add(skillName);
+      }
+      return next;
+    });
+  };
+
+  const handleToggleAll = () => {
+    if (allSelectableSelected) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(selectableSkills.map(s => s.name)));
+    }
+  };
+
+  const handleBatchLink = async () => {
+    const names = selectedLinkable.map(s => s.name);
+    if (names.length > 0) {
+      await onBatchLinkSkills(names);
+      setSelected(new Set());
+    }
+  };
+
+  const handleBatchUnlink = async () => {
+    const names = selectedUnlinkable.map(s => s.name);
+    if (names.length > 0) {
+      await onBatchUnlinkSkills(names);
+      setSelected(new Set());
+    }
+  };
 
   const handleOpenFolder = async () => {
     try {
@@ -61,6 +132,9 @@ export function AgentDetailPage({
       console.error("Failed to open path:", error);
     }
   };
+
+  const isSelectable = (skill: AgentSkill) =>
+    (skill.status === 'not_installed' && skill.in_global) || skill.status === 'symlink';
 
   return (
     <div className="flex-1 flex flex-col min-w-0 bg-background">
@@ -113,6 +187,45 @@ export function AgentDetailPage({
         )}
       </header>
 
+      {/* Batch action bar */}
+      {hasSelection && (
+        <div className="border-b border-border bg-accent/50 px-6 py-2.5 shrink-0 flex items-center gap-3">
+          <span className="text-sm text-foreground font-medium">
+            {selected.size} selected
+          </span>
+          <div className="flex gap-2 ml-auto">
+            {selectedLinkable.length > 0 && (
+              <Button
+                size="sm"
+                onClick={handleBatchLink}
+                disabled={loading}
+              >
+                <Link className="size-3.5" />
+                Link ({selectedLinkable.length})
+              </Button>
+            )}
+            {selectedUnlinkable.length > 0 && (
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={handleBatchUnlink}
+                disabled={loading}
+              >
+                <Unlink className="size-3.5" />
+                Unlink ({selectedUnlinkable.length})
+              </Button>
+            )}
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setSelected(new Set())}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Content */}
       <ScrollArea className="flex-1 min-h-0">
         {!agent.detected && (
@@ -129,6 +242,14 @@ export function AgentDetailPage({
             <Table>
               <TableHeader>
                 <TableRow>
+                  {selectableSkills.length > 0 && (
+                    <TableHead className="w-[40px]">
+                      <Checkbox
+                        checked={allSelectableSelected}
+                        onCheckedChange={handleToggleAll}
+                      />
+                    </TableHead>
+                  )}
                   <TableHead className="w-[180px]">Name</TableHead>
                   <TableHead className="w-[80px]">Status</TableHead>
                   <TableHead>Path</TableHead>
@@ -137,7 +258,22 @@ export function AgentDetailPage({
               </TableHeader>
               <TableBody>
                 {skills.map((skill) => (
-                  <TableRow key={skill.name}>
+                  <TableRow
+                    key={skill.name}
+                    className={cn(selected.has(skill.name) && "bg-accent/50")}
+                  >
+                    {selectableSkills.length > 0 && (
+                      <TableCell>
+                        {isSelectable(skill) ? (
+                          <Checkbox
+                            checked={selected.has(skill.name)}
+                            onCheckedChange={() => handleToggleSelect(skill.name)}
+                          />
+                        ) : (
+                          <span className="block size-4" />
+                        )}
+                      </TableCell>
+                    )}
                     <TableCell className="font-medium">
                       {skill.metadata.name || skill.name}
                     </TableCell>

@@ -134,6 +134,70 @@ function App() {
     }
   };
 
+  const handleBatchLinkSkills = async (skillNames: string[]) => {
+    if (!selectedAgentId) return;
+    try {
+      setLoadingWithMinDuration(true);
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const skillName of skillNames) {
+        try {
+          await invoke("toggle_skill", { agentId: selectedAgentId, skillName, enable: true });
+          successCount++;
+        } catch {
+          failCount++;
+        }
+      }
+
+      await fetchAgentDetail(selectedAgentId);
+      await fetchData();
+
+      if (failCount > 0) {
+        showError("Some links failed", `${successCount} succeeded, ${failCount} failed`);
+      } else {
+        showSuccess("Skills linked", `Linked ${successCount} skill(s)`);
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      showError("Failed to link skills", errorMessage);
+    } finally {
+      setLoadingWithMinDuration(false);
+    }
+  };
+
+  const handleBatchUnlinkSkills = async (skillNames: string[]) => {
+    if (!selectedAgentId) return;
+    try {
+      setLoadingWithMinDuration(true);
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const skillName of skillNames) {
+        try {
+          await invoke("toggle_skill", { agentId: selectedAgentId, skillName, enable: false });
+          successCount++;
+        } catch {
+          failCount++;
+        }
+      }
+
+      await fetchAgentDetail(selectedAgentId);
+      await fetchData();
+
+      if (failCount > 0) {
+        showError("Some unlinks failed", `${successCount} succeeded, ${failCount} failed`);
+      } else {
+        showSuccess("Skills unlinked", `Unlinked ${successCount} skill(s)`);
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      showError("Failed to unlink skills", errorMessage);
+    } finally {
+      setLoadingWithMinDuration(false);
+    }
+  };
+
   const handleLinkSkillToAgents = async (skillName: string, agentIds: string[]) => {
     try {
       setLoadingWithMinDuration(true);
@@ -235,6 +299,8 @@ function App() {
           skills={agentDetail.skills}
           onLinkSkill={handleLinkSkill}
           onUnlinkSkill={handleUnlinkSkill}
+          onBatchLinkSkills={handleBatchLinkSkills}
+          onBatchUnlinkSkills={handleBatchUnlinkSkills}
           onDeleteSkill={handleDeleteSkill}
           onUploadToGlobal={handleUploadToGlobal}
           onRefresh={handleRefresh}
